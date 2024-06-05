@@ -13,4 +13,7 @@
 
 use Illuminate\Routing\Route;
 
-// Route::view('/mpesa-checkout', 'mpesa');
+
+
+// Route::view('/about-m', 'about');
+

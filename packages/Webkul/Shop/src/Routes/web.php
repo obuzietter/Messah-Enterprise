@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * Store front routes.
  */
@@ -16,3 +17,4 @@ require 'customer-routes.php';
  * cart, coupons, etc will be placed here.
  */
 require 'checkout-routes.php';
+
