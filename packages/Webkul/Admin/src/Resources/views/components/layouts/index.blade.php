@@ -52,6 +52,8 @@
     </head>
 
     <body class="h-full dark:bg-gray-950">
+        
+
         {!! view_render_event('bagisto.admin.layout.body.before') !!}
 
         <div id="app" class="h-full">
