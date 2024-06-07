@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\DB;
 
 class OnepageController extends APIController
 {
- 
+
     /**
      * Create a new controller instance.
      *
@@ -129,7 +129,7 @@ class OnepageController extends APIController
     {
         // dd($request->payment['method']);
         // dd($request->all());
-        
+
         $validatedData = $this->validate(request(), [
             'payment' => 'required',
         ]);
@@ -149,20 +149,21 @@ class OnepageController extends APIController
         $cart = Cart::getCart();
 
         // $this->myPayMethod=request()->payment['method'];
-        
+
         // $this->myCart=new CartResource($cart);
-        
+
 
         return [
             'cart' => new CartResource($cart),
             // 'payment_method'=>request()->payment['method'],
         ];
-        
     }
+
+
     /**
      * mpesa stk push function
-    */
-    public function stkPush($amt,$phone)
+     */
+    public function stkPush($amt, $phone)
     {
         $mpesa = new \Safaricom\Mpesa\Mpesa();
         $BusinessShortCode = '174379';
@@ -177,7 +178,7 @@ class OnepageController extends APIController
         $TransactionDesc = 'TransactionDesc';
         $Remarks = 'Remarks';
 
-        
+
         $stkPushSimulation = $mpesa->STKPushSimulation(
             $BusinessShortCode,
             $LipaNaMpesaPasskey,
@@ -196,10 +197,10 @@ class OnepageController extends APIController
      * Store order
      */
 
-    
+
     public function storeOrder()
     {
-        
+
 
         if (Cart::hasError()) {
             return new JsonResource([
@@ -209,7 +210,7 @@ class OnepageController extends APIController
         }
 
         Cart::collectTotals();
-        
+
 
         try {
             $this->validateOrder();
@@ -221,22 +222,37 @@ class OnepageController extends APIController
 
         $cart = Cart::getCart();
 
-        if($cart["payment"]["method"] == "moneytransfer"){
+        if ($cart["payment"]["method"] == "moneytransfer") {
             //getting details stored in the cart ie the customer id
             $cart    = Cart::getCart();
 
             //getting the address of the customer(ie billing address)
             $address = DB::table('addresses')
-             ->where('customer_id', $cart['customer_id'])
-             ->orderBy('id', 'desc') 
-             ->first();
-            
-             //calling the stk push function -> passing in the total and phone number
-            $this->stkPush($cart["grand_total"],$address->phone);
+                ->where('customer_id', $cart['customer_id'])
+                ->orderBy('id', 'desc')
+                ->first();
+
+            // Remove any spaces or dashes from the input
+            $cleanedNumber = preg_replace('/[\s-]+/', '', $address->phone);
+
+            // Check if the number starts with a zero
+            if (substr($cleanedNumber, 0, 1) === '0') {
+                // Remove the leading zero and prepend '254'
+                $formattedNumber = '254' . substr($cleanedNumber, 1);
+            } elseif (substr($cleanedNumber, 0, 3) === '254') {
+                // Number already starts with '254', keep it as is
+                $formattedNumber = $cleanedNumber;
+            } else {
+                // Invalid input format (neither starts with '0' nor '254')
+                $formattedNumber = 'Invalid input';
+            }
+
+            //calling the stk push function -> passing in the total and phone number
+            $this->stkPush($cart["grand_total"], $formattedNumber);
         }
 
-        
-        
+
+
 
         if ($redirectUrl = Payment::getRedirectUrl($cart)) {
             return new JsonResource([
