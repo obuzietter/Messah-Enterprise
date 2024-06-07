@@ -199,7 +199,7 @@ class OnepageController extends APIController
     
     public function storeOrder()
     {
-        // $stkPushSimulation();
+        
 
         if (Cart::hasError()) {
             return new JsonResource([
@@ -221,25 +221,22 @@ class OnepageController extends APIController
 
         $cart = Cart::getCart();
 
-        
-        // dd($cart);
-        // dd(var_dump($cart["grand_total"]));
         if($cart["payment"]["method"] == "moneytransfer"){
+            //getting details stored in the cart ie the customer id
             $cart    = Cart::getCart();
+
+            //getting the address of the customer(ie billing address)
             $address = DB::table('addresses')
              ->where('customer_id', $cart['customer_id'])
-             ->orderBy('id', 'desc') // Assuming 'id' is the primary key or an incrementing column
+             ->orderBy('id', 'desc') 
              ->first();
-            //  dd($address);
+            
+             //calling the stk push function -> passing in the total and phone number
             $this->stkPush($cart["grand_total"],$address->phone);
         }
 
         
-        // dd(var_dump($cart["payment"]["method"] == "moneytransfer"));
-        // dd($cart["payment"]["method"]);
-        // if($cart["payment"]["method"]=="moneytransfer"){
-        //     dd("Trigger stk push");
-        // }
+        
 
         if ($redirectUrl = Payment::getRedirectUrl($cart)) {
             return new JsonResource([
